@@ -10,8 +10,11 @@ A modern water intake tracking application that helps you stay hydrated with sma
 - **Personalized Goals**: Custom hydration targets based on your lifestyle and activity level
 - **Cross-Device Sync**: Real-time synchronization across all your devices with cloud backup
 - **Anonymous Mode**: Track your hydration without creating an account
-- **Modern UI**: Beautiful, responsive design with smooth animations
+- **Modern UI**: Beautiful, responsive design with smooth animations and Chart.js visualizations
 - **Secure Authentication**: JWT-based authentication for registered users
+- **Push Notifications**: Web push notifications to remind you to stay hydrated
+- **Weather Integration**: Smart hydration recommendations based on weather conditions
+- **Email Notifications**: Optional email reminders and updates
 
 ## 🏗️ Architecture
 
@@ -22,6 +25,35 @@ This project follows a modern full-stack architecture:
 - **Authentication**: JWT tokens with bcrypt password hashing
 - **Database**: MongoDB with Mongoose ODM
 - **Styling**: TailwindCSS with custom design system
+- **Notifications**: Web Push API integration
+- **Email**: Nodemailer for email services
+- **Visualizations**: Chart.js for data analytics
+
+## 📋 Development Status
+
+**Current Version**: 1.0.0 (Backend) | 0.0.0 (Frontend)
+**Last Updated**: August 2025
+
+### ✅ Completed Features
+- User authentication system (register, login, anonymous)
+- JWT-based security with token management
+- MongoDB database integration
+- React frontend with modern UI components
+- API structure and routing
+- CORS configuration
+- Environment variable management
+
+### 🚧 In Development
+- Water intake tracking functionality
+- Dashboard and analytics
+- Push notification implementation
+- Email notification system
+- Weather API integration
+
+### 📝 Known Issues
+- Backend package.json missing development scripts
+- Frontend build optimization needed
+- API documentation needs completion
 
 ## 📁 Project Structure
 
@@ -49,7 +81,7 @@ aqua-alert/
 
 ### Prerequisites
 
-- Node.js (v16 or higher)
+- Node.js (v16 or higher) 
 - MongoDB (local or MongoDB Atlas)
 - npm or yarn
 
@@ -57,7 +89,7 @@ aqua-alert/
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/aqua-alert.git
+   git clone https://github.com/AegisX-Dev/aqua-alert.git
    cd aqua-alert
    ```
 
@@ -74,8 +106,14 @@ aqua-alert/
    MONGODB_URI=your_mongodb_connection_string
    PORT=5000
    JWT_SECRET=your_jwt_secret_key
+   ```
+
+   *Optional environment variables for enhanced features:*
+   ```env
    OPENWEATHER_API_KEY=your_openweather_api_key
    GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+   EMAIL_USER=your_email_for_notifications
+   EMAIL_PASS=your_email_password
    ```
 
 4. **Setup Frontend**
@@ -89,9 +127,11 @@ aqua-alert/
 1. **Start the Backend Server**
    ```bash
    cd backend
-   npm run dev
+   node server.js
    ```
    The backend will run on `http://localhost:5000`
+
+   *Note: For development with auto-restart, you can use: `npx nodemon server.js`*
 
 2. **Start the Frontend Development Server**
    ```bash
@@ -110,7 +150,9 @@ aqua-alert/
 
 ### Backend Scripts
 - `npm start` - Start production server
-- `npm run dev` - Start development server with nodemon
+- `npm test` - Run tests (currently placeholder)
+
+Note: The backend currently uses `node server.js` to start the server. Development scripts need to be added to package.json.
 
 ## 📚 API Documentation
 
@@ -118,13 +160,17 @@ The backend provides a RESTful API for user management and hydration tracking. H
 
 ### Authentication Endpoints
 - `POST /api/users/register` - Register a new user
-- `POST /api/users/login` - Login user
+- `POST /api/users/login` - Login user  
 - `POST /api/users/anonymous` - Create anonymous user
 
 ### Protected Endpoints (Require Authentication)
 - `GET /api/users/profile` - Get user profile
 - `PUT /api/users/profile` - Update user profile
 - `DELETE /api/users/account` - Delete user account
+
+### API Base URL
+- Development: `http://localhost:5000/api`
+- Authentication: Bearer token in Authorization header
 
 For detailed API documentation, see [backend/README.md](backend/README.md).
 
@@ -142,28 +188,34 @@ The application uses a custom design system built on TailwindCSS with the follow
 
 ### Frontend
 - **React 19** - UI framework
-- **Vite** - Build tool and development server
-- **TailwindCSS** - Utility-first CSS framework
+- **Vite 7.1** - Build tool and development server
+- **TailwindCSS 4.1** - Utility-first CSS framework
 - **Lucide React** - Icon library
 - **shadcn/ui** - Component library
-- **Axios** - HTTP client
+- **Axios 1.11** - HTTP client
+- **Chart.js 4.5** - Data visualization
+- **Web Push 3.6** - Push notification support
+- **Anime.js 4.1** - Animation library
 
 ### Backend
 - **Node.js** - Runtime environment
-- **Express** - Web framework
-- **MongoDB** - Database
-- **Mongoose** - ODM for MongoDB
-- **JWT** - Authentication tokens
-- **bcrypt** - Password hashing
-- **CORS** - Cross-origin resource sharing
+- **Express 5.1** - Web framework
+- **MongoDB 6.18** - Database
+- **Mongoose 8.17** - ODM for MongoDB
+- **JWT 9.0** - Authentication tokens
+- **bcrypt 6.0** - Password hashing
+- **CORS 2.8** - Cross-origin resource sharing
+- **Nodemailer 7.0** - Email service
 
 ## 🔐 Security Features
 
-- Password hashing using bcrypt
-- JWT token-based authentication
+- Password hashing using bcrypt (v6.0)
+- JWT token-based authentication (v9.0)
 - Input validation and sanitization
-- CORS protection
+- CORS protection (v2.8)
 - Environment variable protection
+- Secure HTTP headers
+- Token expiration handling
 
 ## 🌍 Environment Configuration
 
@@ -194,19 +246,22 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🎯 Future Enhancements
 
 - [ ] Progressive Web App (PWA) support
-- [ ] Push notifications
-- [ ] Water intake history and analytics
+- [x] Push notifications (Web Push integrated)
+- [x] Water intake history and analytics (Chart.js integration)
 - [ ] Social features and challenges
 - [ ] Integration with fitness trackers
 - [ ] Dark mode support
 - [ ] Multi-language support
-- [ ] Weather-based hydration recommendations
+- [x] Weather-based hydration recommendations (Weather API integrated)
+- [x] Email notification system (Nodemailer integrated)
+- [ ] Mobile app development
+- [ ] Advanced data analytics and insights
 
 ## 📞 Support
 
 If you have any questions or need help, please:
 
-1. Check the [Issues](https://github.com/yourusername/aqua-alert/issues) page
+1. Check the [Issues](https://github.com/AegisX-Dev/aqua-alert/issues) page
 2. Create a new issue if your question isn't already addressed
 3. Contact the development team
 
