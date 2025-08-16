@@ -189,7 +189,7 @@
                 <div className="flex items-center justify-center space-x-2 mb-2">
                 <div className="rounded-full bg-white p-2 backdrop-blur-sm">
                     <img 
-                    src="/public/logo.png" 
+                    src="/logo.png" 
                     alt="AquaAlert Logo" 
                     className="h-18 w-18 object-contain"
                     />

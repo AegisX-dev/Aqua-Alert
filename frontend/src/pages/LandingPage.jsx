@@ -117,7 +117,7 @@ function LandingPage({ onNavigateToSignup, onNavigateToLogin, onNavigateToPrivac
                 <div className="flex items-center space-x-2 mb-4 md:mb-0">
                 <div className="rounded-full bg-white p-2 backdrop-blur-sm">
                     <img 
-                    src="/public/logo.png" 
+                    src="/logo.png" 
                     alt="AquaAlert Logo" 
                     className="h-24 w-24 object-contain"
                     />
