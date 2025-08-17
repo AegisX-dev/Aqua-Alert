@@ -1,39 +1,41 @@
-    import axios from 'axios';
+import axios from 'axios';
 
-    // Create axios instance with base configuration
-    const api = axios.create({
-    baseURL: 'http://localhost:5000/api',
+// Create axios instance with base configuration
+const api = axios.create({
+    // Use environment variable or fallback to localhost for development
+    baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api',
     headers: {
         'Content-Type': 'application/json',
     },
-    });
+    timeout: 10000, // 10 second timeout
+});
 
-    // Add request interceptor to include auth token
-    api.interceptors.request.use(
+// Request interceptor to add auth token
+api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('authToken');
         if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+            config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
     },
     (error) => {
         return Promise.reject(error);
     }
-    );
+);
 
-    // Add response interceptor for error handling
-    api.interceptors.response.use(
+// Response interceptor for error handling
+api.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response?.status === 401) {
-        // Token expired or invalid
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('user');
-        // You can redirect to login here if needed
+            // Clear invalid token
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('user');
+            localStorage.removeItem('isAnonymous');
         }
         return Promise.reject(error);
     }
-    );
+);
 
-    export default api;
+export default api;
