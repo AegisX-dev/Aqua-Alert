@@ -16,7 +16,6 @@ const corsOptions = {
         'https://aqua-alert-git-main-aegisx-devs.vercel.app', // Your current Vercel domain
         'https://aqua-alert.vercel.app', // Production domain
         'https://aqua-alert-aegisx-devs.vercel.app', // Alternative Vercel domain
-        // Add any other frontend domains you might use
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -83,25 +82,41 @@ mongoose.connection.on('disconnected', () => {
 
 // Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, '0.0.0.0', () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`🔗 API URL: http://localhost:${PORT}`);
 });
 
-// Graceful shutdown
-process.on('SIGTERM', () => {
-    console.log('SIGTERM received. Shutting down gracefully...');
-    mongoose.connection.close(() => {
-        console.log('MongoDB connection closed.');
-        process.exit(0);
+// Graceful shutdown handlers (Fixed for Mongoose 8.x)
+const gracefulShutdown = () => {
+    console.log('Shutting down gracefully...');
+    
+    server.close(() => {
+        console.log('HTTP server closed.');
+        
+        mongoose.connection.close() // No callback in Mongoose 8.x
+            .then(() => {
+                console.log('MongoDB connection closed.');
+                process.exit(0);
+            })
+            .catch((error) => {
+                console.error('Error closing MongoDB connection:', error);
+                process.exit(1);
+            });
     });
+};
+
+process.on('SIGTERM', gracefulShutdown);
+process.on('SIGINT', gracefulShutdown);
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:', error);
+    gracefulShutdown();
 });
 
-process.on('SIGINT', () => {
-    console.log('SIGINT received. Shutting down gracefully...');
-    mongoose.connection.close(() => {
-        console.log('MongoDB connection closed.');
-        process.exit(0);
-    });
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    gracefulShutdown();
 });

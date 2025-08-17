@@ -1,150 +1,128 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
 
+// Goal sub-schema
+const goalSchema = new mongoose.Schema({
+    units_volume: {
+        type: String,
+        enum: ['ml', 'fl_oz'],
+        default: 'ml'
+    },
+    amount: {
+        type: Number,
+        min: 1,
+        max: 10000,
+        default: 2000
+    }
+}, { _id: false });
+
+// User schema
 const userSchema = new mongoose.Schema({
     id: {
         type: String,
         default: uuidv4,
-        unique: true,
-        required: true
+        unique: true
     },
     email: {
         type: String,
         unique: true,
-        sparse: true, // Allows null values to be non-unique
-        lowercase: true,
-        trim: true,
+        sparse: true, // Allows multiple null values
         validate: {
-            validator: function(email) {
-                if (!email) return true; // Allow null/undefined for anonymous users
-                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+            validator: function(v) {
+                // Only validate email format if it's provided
+                return !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
             },
-            message: 'Please provide a valid email address'
+            message: 'Please enter a valid email address'
         }
     },
     display_name: {
         type: String,
-        required: true,
-        trim: true,
-        maxlength: 50,
+        required: [true, 'Display name is required'],
         unique: true,
-        validate: {
-            validator: function(display_name) {
-                return display_name && display_name.length >= 2;
-            },
-            message: 'Display name must be at least 2 characters long'
-        }
+        minlength: [2, 'Display name must be at least 2 characters'],
+        maxlength: [50, 'Display name must be less than 50 characters'],
+        trim: true
     },
     password: {
         type: String,
         required: function() {
-            return this.email != null; // Password required only for registered users
+            return !this.is_anonymous;
         },
-        minlength: 6,
-        validate: {
-            validator: function(password) {
-                if (!this.email) return true; // Skip validation for anonymous users
-                return password && password.length >= 6;
-            },
-            message: 'Password must be at least 6 characters long'
-        }
+        minlength: [6, 'Password must be at least 6 characters']
     },
     timezone: {
         type: String,
-        required: true,
-        default: 'UTC',
-        validate: {
-            validator: function(tz) {
-                // Basic IANA timezone validation
-                try {
-                    Intl.DateTimeFormat(undefined, { timeZone: tz });
-                    return true;
-                } catch (ex) {
-                    return false;
-                }
-            },
-            message: 'Please provide a valid IANA timezone (e.g., Asia/Kolkata)'
-        }
+        default: 'UTC'
     },
     goal: {
-        units_volume: {
-            type: String,
-            enum: ['ml', 'fl_oz'],
-            required: true,
-            default: 'ml'
-        },
-        amount: {
-            type: Number,
-            required: true,
-            min: 1,
-            max: 10000, // Maximum reasonable daily goal
-            default: 2000 // Default 2000ml daily goal
-        }
+        type: goalSchema,
+        default: () => ({})
     },
     is_anonymous: {
         type: Boolean,
-        default: function() {
-            return !this.email;
-        }
+        default: false
     }
 }, {
-    timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }
-});
-
-// Index for better query performance
-userSchema.index({ email: 1 });
-userSchema.index({ id: 1 });
-userSchema.index({ display_name: 1 });
-
-// Pre-save middleware to generate UUID if not provided
-userSchema.pre('save', function(next) {
-    if (!this.id) {
-        this.id = uuidv4();
+    timestamps: { 
+        createdAt: 'created_at', 
+        updatedAt: 'updated_at' 
     }
-    next();
 });
+
+// Create indexes explicitly (removes duplicate warnings)
+userSchema.index({ id: 1 }, { unique: true });
+userSchema.index({ email: 1 }, { unique: true, sparse: true });
+userSchema.index({ display_name: 1 }, { unique: true });
 
 // Pre-save middleware to hash password
 userSchema.pre('save', async function(next) {
-    if (!this.isModified('password') || !this.password) {
-        return next();
-    }
+    // Only hash the password if it has been modified (or is new)
+    if (!this.isModified('password')) return next();
     
     try {
-        const bcrypt = require('bcrypt');
-        const saltRounds = 10;
-        this.password = await bcrypt.hash(this.password, saltRounds);
+        // Hash password with cost of 12
+        const hashedPassword = await bcrypt.hash(this.password, 12);
+        this.password = hashedPassword;
         next();
     } catch (error) {
         next(error);
     }
 });
 
-// Method to compare password
+// Instance method to compare password
 userSchema.methods.comparePassword = async function(candidatePassword) {
-    if (!this.password) {
-        return false;
-    }
-    
     try {
-        const bcrypt = require('bcrypt');
         return await bcrypt.compare(candidatePassword, this.password);
     } catch (error) {
-        return false;
+        throw error;
     }
 };
 
-// Method to check if user is anonymous
-userSchema.methods.isAnonymous = function() {
-    return !this.email;
+// Instance method to get public user data
+userSchema.methods.toPublicJSON = function() {
+    return {
+        id: this.id,
+        email: this.email,
+        display_name: this.display_name,
+        timezone: this.timezone,
+        goal: this.goal,
+        is_anonymous: this.is_anonymous,
+        created_at: this.created_at,
+        updated_at: this.updated_at
+    };
 };
 
-// Transform output to hide password
-userSchema.methods.toJSON = function() {
-    const userObject = this.toObject();
-    delete userObject.password;
-    delete userObject.__v;
-    return userObject;
+// Static method to find user by display name or email
+userSchema.statics.findByLogin = function(loginField) {
+    return this.findOne({
+        $or: [
+            { display_name: loginField },
+            { email: loginField }
+        ]
+    });
 };
 
-module.exports = mongoose.model('User', userSchema);
+const User = mongoose.model('User', userSchema);
+
+module.exports = User;
