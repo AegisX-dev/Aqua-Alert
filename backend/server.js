@@ -16,6 +16,7 @@ const corsOptions = {
         'https://aqua-alert-git-main-aegisx-devs.vercel.app', // Your current Vercel domain
         'https://aqua-alert.vercel.app', // Production domain
         'https://aqua-alert-aegisx-devs.vercel.app', // Alternative Vercel domain
+        'https://aqua-alert-rouge.vercel.app', // Add this line for your current deployment
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
